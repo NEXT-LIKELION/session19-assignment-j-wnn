@@ -1,7 +1,4 @@
-'use client'
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,59 +7,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import CommentSection from "@/components/CommentSection";
+import PostActions from "@/components/PostActions";
 
-export default function PostPage({ params }) {
-    const [post, setPost] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-
-    // 게시글 데이터 불러오기
-    useEffect(() => {
-        async function fetchPost() {
-            try {
-                const res = await fetch(`/api/posts/${params.id}`, { cache: "no-store" });
-                if (res.ok) {
-                    const postData = await res.json();
-                    setPost(postData);
-                } else {
-                    setPost(null);
-                }
-            } catch (error) {
-                console.error("게시글을 불러오는데 실패했습니다:", error);
-                setPost(null);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchPost();
-    }, [params.id]);
-
-    // 게시글 삭제 처리
-    async function handleDelete() {
-        if (!confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/posts/${params.id}`, {
-                method: "DELETE",
-            });
-
-            if (res.ok) {
-                alert("게시글이 삭제되었습니다.");
-                router.push("/");
-            } else {
-                alert("게시글 삭제에 실패했습니다.");
-            }
-        } catch (error) {
-            console.error("게시글 삭제 중 오류가 발생했습니다:", error);
-            alert("게시글 삭제 중 오류가 발생했습니다.");
-        }
+// 게시글 데이터를 서버에서 가져오기
+async function getPost(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/posts/${id}`, { 
+      cache: "no-store" 
+    });
+    
+    if (!res.ok) {
+      return null;
     }
+    
+    return await res.json();
+  } catch (error) {
+    console.error("게시글을 불러오는데 실패했습니다:", error);
+    return null;
+  }
+}
 
-    if (loading) {
-        return <div className="text-center">게시글을 불러오는 중...</div>;
-    }
+export default async function PostPage({ params }) {
+    const unwrappedParams = await params;
+    const post = await getPost(unwrappedParams.id);
 
     if (!post) {
         return (
@@ -83,25 +51,19 @@ export default function PostPage({ params }) {
             <Card className="w-full">
                 <CardHeader className="border-b">
                     <CardTitle className="text-3xl font-bold mb-2">{post.title}</CardTitle>
-                    <CardDescription>작성자: {post.author} {/* Add date here if available: • {post.date} */}</CardDescription>
+                    <CardDescription>작성자: {post.author}</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
                     <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none whitespace-pre-wrap">
                         {post.content}
                     </div>
                 </CardContent>
-                <div className="p-6 border-t flex gap-2 justify-end">
-                    <Button asChild variant="outline">
-                        <Link href={`/post/${params.id}/edit`}>수정</Link>
-                    </Button>
-                    <Button 
-                        variant="destructive" 
-                        onClick={handleDelete}
-                    >
-                        삭제
-                    </Button>
-                </div>
+                {/* 수정/삭제 버튼을 별도 클라이언트 컴포넌트로 분리 */}
+                <PostActions postId={unwrappedParams.id} />
             </Card>
+            
+            {/* 댓글 섹션 (CSR 유지) */}
+            <CommentSection postId={unwrappedParams.id} />
         </div>
-    )
+    );
 }

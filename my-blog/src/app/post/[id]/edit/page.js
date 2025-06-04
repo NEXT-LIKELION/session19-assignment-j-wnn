@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
 export default function EditPage({ params }) {
+    const unwrappedParams = use(params);
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [author, setAuthor] = useState("");
@@ -19,7 +20,7 @@ export default function EditPage({ params }) {
     useEffect(() => {
         async function fetchPost() {
             try {
-                const res = await fetch(`/api/posts/${params.id}`);
+                const res = await fetch(`/api/posts/${unwrappedParams.id}`);
                 if (res.ok) {
                     const post = await res.json();
                     setTitle(post.title);
@@ -34,20 +35,20 @@ export default function EditPage({ params }) {
         }
 
         fetchPost();
-    }, [params.id]);
+    }, [unwrappedParams.id]);
 
     // 게시글 수정 처리
     async function handleSubmit(e) {
         e.preventDefault();
         try {
-            const res = await fetch(`/api/posts/${params.id}`, {
+            const res = await fetch(`/api/posts/${unwrappedParams.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({title, content, author}),
             });
             
             if (res.ok) {
-                router.push(`/post/${params.id}`);
+                router.push(`/post/${unwrappedParams.id}`);
             } else {
                 console.error("게시글 수정에 실패했습니다");
             }
@@ -63,7 +64,7 @@ export default function EditPage({ params }) {
     return (
         <div className="w-full">
             <Button asChild variant="outline" className="mb-8">
-                <Link href={`/post/${params.id}`}>← 게시글로 돌아가기</Link>
+                <Link href={`/post/${unwrappedParams.id}`}>← 게시글로 돌아가기</Link>
             </Button>
             <Card className="w-full">
                 <CardHeader>
@@ -108,7 +109,7 @@ export default function EditPage({ params }) {
                     </CardContent>
                     <CardFooter className="border-t pt-6 flex justify-between">
                         <Button type="button" variant="outline" asChild>
-                            <Link href={`/post/${params.id}`}>취소</Link>
+                            <Link href={`/post/${unwrappedParams.id}`}>취소</Link>
                         </Button>
                         <Button type="submit">수정 완료</Button>
                     </CardFooter>
