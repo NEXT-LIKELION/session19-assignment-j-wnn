@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Edit3, Trash2 } from "lucide-react";
 
 export default function PostActions({ postId }) {
     const router = useRouter();
@@ -30,16 +32,32 @@ export default function PostActions({ postId }) {
     }
 
     return (
-        <div className="p-6 border-t flex gap-2 justify-end">
-            <Button asChild variant="outline">
-                <Link href={`/post/${postId}/edit`}>수정</Link>
-            </Button>
-            <Button 
-                variant="destructive" 
-                onClick={handleDelete}
-            >
-                삭제
-            </Button>
+        <div className="border-t border-border bg-muted/20">
+            <div className="p-6">
+                <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                        게시글 관리
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button asChild variant="outline" size="sm" className="hover:bg-primary/10 border-border text-foreground">
+                            <Link href={`/post/${postId}/edit`} className="inline-flex items-center gap-2">
+                                <Edit3 className="h-4 w-4" />
+                                수정
+                            </Link>
+                        </Button>
+                        <Separator orientation="vertical" className="h-6" />
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleDelete}
+                            className="hover:bg-destructive/10 border-destructive/30 text-destructive hover:text-destructive"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            삭제
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 } 
